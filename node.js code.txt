@@ -1,0 +1,149 @@
+index.html
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Contact Us</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      background: white;
+      padding: 30px 40px;
+      border-radius: 15px;
+      width: 350px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      outline: none;
+      transition: 0.3s;
+    }
+
+    input:focus, textarea:focus {
+      border-color: #4facfe;
+      box-shadow: 0 0 5px rgba(79,172,254,0.5);
+    }
+
+    textarea {
+      resize: none;
+      height: 80px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #4facfe;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #007bff;
+      transform: scale(1.03);
+    }
+
+    .footer {
+      margin-top: 10px;
+      font-size: 12px;
+      color: gray;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>Contact Us</h1>
+
+    <form action="/submit" method="POST">
+      <input type="text" name="name" placeholder="Enter your name" required>
+      <input type="email" name="email" placeholder="Enter your email" required>
+      <textarea name="message" placeholder="Enter your message" required></textarea>
+      <button type="submit">Send Message</button>
+    </form>
+
+    <div class="footer">
+      Feel Free to reach Out
+    </div>
+  </div>
+
+</body>
+</html>
+
+
+server.js
+
+const express = require("express");
+const mongoose = require("mongoose");
+const path = require("path");
+
+const app = express();
+const PORT = 3000;
+
+console.log("Starting server...");
+
+// MongoDB connection
+mongoose.connect("mongodb://127.0.0.1:27017/contactDB")
+  .then(() => console.log("MongoDB Connected"))
+  .catch(err => console.log(err));
+
+// Schema
+const contactSchema = new mongoose.Schema({
+  name: String,
+  email: String,
+  message: String,
+});
+
+const Contact = mongoose.model("Contact", contactSchema);
+
+// Middleware
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, "public")));
+
+// Routes
+app.post("/submit", async (req, res) => {
+  try {
+    const { name, email, message } = req.body;
+
+    const newContact = new Contact({ name, email, message });
+    await newContact.save();
+
+    res.send("Form submitted successfully ✅");
+  } catch (err) {
+    res.send("Error saving data ❌");
+  }
+});
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
